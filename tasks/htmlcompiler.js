@@ -9,42 +9,58 @@
 'use strict';
 
 module.exports = function(grunt) {
+    grunt.registerMultiTask('htmlcompiler', 'Grunt task to compile an HTML document.', function() {
+        var self = this,
+        fs = require('fs'),
+        path = require('path'),
+        options = this.options({
+            doctype: 'UTF-8',
+            encoding: 'UTF-8',
+            vendors: null,
+            scripts: null,
+            stylesheets: null,
+            title: '',
+            body: null,
+            root: '.'
+        }),
+        targetPath = fs.realpathSync(this.target.replace(/^(.*)\/.*$/, '$1'));
 
-  // Please see the Grunt documentation for more information regarding task
-  // creation: http://gruntjs.com/creating-tasks
-
-  grunt.registerMultiTask('htmlcompiler', 'Grunt task to compile an HTML document.', function() {
-    // Merge task-specific and/or target-specific options with these defaults.
-    var options = this.options({
-      punctuation: '.',
-      separator: ', '
-    });
-
-    // Iterate over all specified file groups.
-    this.files.forEach(function(f) {
-      // Concat specified files.
-      var src = f.src.filter(function(filepath) {
-        // Warn on and remove invalid source files (if nonull was set).
-        if (!grunt.file.exists(filepath)) {
-          grunt.log.warn('Source file "' + filepath + '" not found.');
-          return false;
-        } else {
-          return true;
+        function getAssets(assets) {
+            return grunt.file.expandMapping(assets).map(function (files) {
+                return require('path').relative(targetPath, fs.realpathSync(options.root + '/' + files.src));
+            });
         }
-      }).map(function(filepath) {
-        // Read file source.
-        return grunt.file.read(filepath);
-      }).join(grunt.util.normalizelf(options.separator));
 
-      // Handle options.
-      src += options.punctuation;
+        function getElement(template, options) {
+            return grunt.template.process(template, {data: options});
+        }
 
-      // Write the destination file.
-      grunt.file.write(f.dest, src);
+        function getScriptsElement(src) {
+            return getElement('<script src="<%= src %>"></script>', {src: src});
+        }
 
-      // Print a success message.
-      grunt.log.writeln('File "' + f.dest + '" created.');
+        function getStylesheetElement(href) {
+            return getElement('<link rel="stylesheet" href="<%= href %>"/>', {href: href});
+        }
+
+        options.vendors = getAssets(options.vendors).map(function (file) {
+            if (/\.js$/.test(file)) {
+                return getScriptsElement(file);
+            } else if (/\.css$/.test(file)) {
+                return getStylesheetElement(file);
+            }
+
+            return null;
+        }).join('\n\t\t');
+        
+        options.stylesheets = getAssets(options.stylesheets).map(function (file) {
+            return getStylesheetElement(file);
+        }).join('\n\t\t');
+
+        options.scripts = getAssets(options.scripts).map(function (file) {
+            return getScriptsElement(file);
+        }).join('\n\t\t');
+
+        grunt.file.write(self.target, grunt.template.process('<!doctype <%= doctype %>>\n<html>\n\t<head>\n\t\t<title><%= title %></title>\n\t\t<meta charset="<%= encoding %>"/>\n\t\t<%= vendors %>\n\t\t<%= stylesheets %>\n\t</head>\n\t<body>\n\t\t<%= body %>\n\t\t<%= scripts %>\n\t</body>\n</html>', {data: options}));
     });
-  });
-
 };
