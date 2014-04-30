@@ -26,64 +26,139 @@ In your project's Gruntfile, add a section named `htmlcompiler` to the data obje
 grunt.initConfig({
   htmlcompiler: {
     options: {
-      // Task-specific options go here.
+      // global options
     },
-    your_target: {
-      // Target-specific file lists and/or options go here.
+    'a.html': {
+      options: {
+        // task specific options
+      }
     },
-  },
+    'b.html': {
+      options: {
+        // task specific options
+      }
+    }
+  }
 });
 ```
 
 ### Options
 
-#### options.separator
-Type: `String`
-Default value: `',  '`
+#### options.doctype
+Type: `String`  
+Default value: `html`
 
-A string value that is used to do something with whatever.
+A string value that is used as the [DOCTYPE](https://developer.mozilla.org/en-US/docs/Web/API/document.doctype).
 
-#### options.punctuation
-Type: `String`
-Default value: `'.'`
+#### options.encoding
+Type: `String`  
+Default value: `UTF-8`
 
-A string value that is used to do something else with whatever else.
+A string value that is used in the META tag [`charset` attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset).
+
+#### options.vendors
+Type: `String|Array|Object`  
+Default value: `null`
+
+A file reference to all vendor assets that will be added before any other scripts or stylesheets in the `HEAD` tag.
+
+#### options.stylesheets
+Type: `String|Array|Object`  
+Default value: `null`
+
+A file reference to all stylesheet assets that will be added in the `HEAD` tag.
+
+#### options.scripts
+Type: `String|Array|Object`  
+Default value: `null`
+
+A file reference to all script assets that will be appended before the end of the `BODY` tag.
+
+#### options.title
+Type: `String`  
+Default value: `null`
+
+The title of the document.
+
+#### options.body
+Type: `String`  
+Default value: ''
+
+The content of the `BODY` tag.
+
+#### options.root
+Type: `String`  
+Default value: `.`
+
+The root scope of all paths. Any external assets that are included will be converted to relative URL's based on this value.
 
 ### Usage Examples
 
 #### Default Options
-In this example, the default options are used to do something with whatever. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
+In this example, an `index.html` file will be created with a basic structure.
 
 ```js
 grunt.initConfig({
   htmlcompiler: {
-    options: {},
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
-  },
+    'index.html': {}
+  }
 });
 ```
 
+```html
+<!doctype html>
+<html>
+  <head>
+    <title></title>
+    <meta charset="UTF-8"/>
+  </head>
+  <body>
+  </body>
+</html>
+```
+
 #### Custom Options
-In this example, custom options are used to do something else with whatever else. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result in this case would be `Testing: 1 2 3 !!!`
+In this example, an `index.html` file will be created with relative assets from the project.
 
 ```js
 grunt.initConfig({
   htmlcompiler: {
     options: {
-      separator: ': ',
-      punctuation: ' !!!',
+      doctype: 'html',
+      encoding: 'UTF-8'
     },
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
-  },
+    'index.html': {
+      options: {
+        vendors: 'vendor/**',
+        scripts: 'scripts/**/*.js',
+        stylesheets: 'stylesheets/**/*.css',
+        title: 'HTML Compiler Page',
+        body: 'Hello world',
+        root: '.'
+      }
+    }
+  }
 });
 ```
 
-## Contributing
-In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
+```html
+<!doctype html>
+<html>
+  <head>
+    <title>HTML Compiler Page</title>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" href="vendor/jquery.css"/>
+    <script src="vendor/jquery.js"></script>
+    <link rel="stylesheet" href="stylesheets/reset.css"/>
+    <link rel="stylesheet" href="stylesheets/style.css"/>
+  </head>
+  <body>
+    Hello world
+    <script src="scripts/script.js"></script>
+  </body>
+</html>
+```
 
 ## Release History
-_(Nothing yet)_
+
+  * 2014-04-30 Initial release.
