@@ -10,8 +10,7 @@
 
 module.exports = function(grunt) {
     grunt.registerMultiTask('htmlcompiler', 'Grunt task to compile an HTML document.', function() {
-        var self = this,
-        fs = require('fs'),
+        var fs = require('fs'),
         path = require('path'),
         options = this.options({
             doctype: 'UTF-8',
@@ -23,7 +22,8 @@ module.exports = function(grunt) {
             body: null,
             root: '.'
         }),
-        targetPath = fs.realpathSync(this.target.replace(/^(.*)\/.*$/, '$1'));
+        target = this.target,
+        targetPath = fs.realpathSync(target.replace(/^(.*)\/.*$/, '$1'));
 
         function getAssets(assets) {
             return grunt.file.expandMapping(assets).map(function (files) {
@@ -43,6 +43,8 @@ module.exports = function(grunt) {
             return getElement('<link rel="stylesheet" href="<%= href %>"/>', {href: href});
         }
 
+        grunt.log.writeln(grunt.template.process('Doctype set to <%= doctype %>\nEncoding set to <%= encoding %>', {data: options}));
+
         options.vendors = getAssets(options.vendors).map(function (file) {
             if (/\.js$/.test(file)) {
                 return getScriptsElement(file);
@@ -53,14 +55,17 @@ module.exports = function(grunt) {
             return null;
         }).join('\n\t\t');
         
-        options.stylesheets = getAssets(options.stylesheets).map(function (file) {
-            return getStylesheetElement(file);
+        options.stylesheets = getAssets(options.stylesheets).map(function (filename) {
+            grunt.log.writeln(grunt.template.process('Linking stylesheet <%= filename %>', {data: { filename: filename }}));
+            return getStylesheetElement(filename);
         }).join('\n\t\t');
 
-        options.scripts = getAssets(options.scripts).map(function (file) {
-            return getScriptsElement(file);
+        options.scripts = getAssets(options.scripts).map(function (filename) {
+            grunt.log.writeln(grunt.template.process('Linking script <%= filename %>', {data: { filename: filename }}));
+            return getScriptsElement(filename);
         }).join('\n\t\t');
 
-        grunt.file.write(self.target, grunt.template.process('<!doctype <%= doctype %>>\n<html>\n\t<head>\n\t\t<title><%= title %></title>\n\t\t<meta charset="<%= encoding %>"/>\n\t\t<%= vendors %>\n\t\t<%= stylesheets %>\n\t</head>\n\t<body>\n\t\t<%= body %>\n\t\t<%= scripts %>\n\t</body>\n</html>', {data: options}).replace(/^\n|\s+$/gm, ''));
+        grunt.file.write(target, grunt.template.process('<!doctype <%= doctype %>>\n<html>\n\t<head>\n\t\t<title><%= title %></title>\n\t\t<meta charset="<%= encoding %>"/>\n\t\t<%= vendors %>\n\t\t<%= stylesheets %>\n\t</head>\n\t<body>\n\t\t<%= body %>\n\t\t<%= scripts %>\n\t</body>\n</html>', {data: options}).replace(/^\n|\s+$/gm, ''));
+        grunt.log.ok(grunt.template.process('Created <%= filename %>', {data: { filename: target }}));
     });
 };
