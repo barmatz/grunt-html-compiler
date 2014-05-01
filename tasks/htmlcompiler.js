@@ -25,10 +25,34 @@ module.exports = function(grunt) {
         target = this.target,
         targetPath = fs.realpathSync(target.replace(/^(.*)\/.*$/, '$1'));
 
+        function isExternalAsset(asset) {
+            return /^\w+:\/\//.test(asset);   
+        }
+
+
         function getAssets(assets) {
+            var externalAssets = {}, i;
+
+            switch (typeof assets) {
+                case 'string':
+                    if (isExternalAsset(assets)) {
+                        return assets;
+                    }
+                    break;
+                case 'object':
+                    if (assets instanceof Array) {
+                        assets.forEach(function (asset) {
+                            if (isExternalAsset(asset)) {
+                                externalAssets[asset] = null;
+                            }
+                        });
+                    }
+                    break;
+            }
+
             return grunt.file.expandMapping(assets).map(function (files) {
                 return require('path').relative(targetPath, fs.realpathSync(options.root + '/' + files.src));
-            });
+            }).concat(Object.keys(externalAssets));
         }
 
         function getElement(template, options) {
@@ -36,10 +60,12 @@ module.exports = function(grunt) {
         }
 
         function getScriptsElement(src) {
+            grunt.log.writeln(grunt.template.process('Linking script <%= filename %>', {data: { filename: src }}));
             return getElement('<script src="<%= src %>"></script>', {src: src});
         }
 
         function getStylesheetElement(href) {
+            grunt.log.writeln(grunt.template.process('Linking stylesheet <%= filename %>', {data: { filename: href }}));
             return getElement('<link rel="stylesheet" href="<%= href %>"/>', {href: href});
         }
 
@@ -56,12 +82,10 @@ module.exports = function(grunt) {
         }).join('\n\t\t');
         
         options.stylesheets = getAssets(options.stylesheets).map(function (filename) {
-            grunt.log.writeln(grunt.template.process('Linking stylesheet <%= filename %>', {data: { filename: filename }}));
             return getStylesheetElement(filename);
         }).join('\n\t\t');
 
         options.scripts = getAssets(options.scripts).map(function (filename) {
-            grunt.log.writeln(grunt.template.process('Linking script <%= filename %>', {data: { filename: filename }}));
             return getScriptsElement(filename);
         }).join('\n\t\t');
 
