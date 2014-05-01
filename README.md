@@ -161,6 +161,7 @@ grunt.initConfig({
 
 ## Release History
 
+  * 2014-05-01 v0.1.4 Added auto creation of target paths if they don't exist and new colours for the logs.
   * 2014-05-01 v0.1.3 Added support for external URLs.
   * 2014-05-01 v0.1.2 Added task logs, changed default doctype and added versions to the release history.
   * 2014-05-01 v0.1.1 Removed empty lines from output.
