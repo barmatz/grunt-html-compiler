@@ -161,4 +161,5 @@ grunt.initConfig({
 
 ## Release History
 
+  * 2014-05-01 Removed empty lines from output.
   * 2014-04-30 Initial release.
