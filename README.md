@@ -161,5 +161,6 @@ grunt.initConfig({
 
 ## Release History
 
-  * 2014-05-01 Removed empty lines from output.
-  * 2014-04-30 Initial release.
+  * 2014-05-01 v0.1.2 Added task logs, changed default doctype and added versions to the release history.
+  * 2014-05-01 v0.1.1 Removed empty lines from output.
+  * 2014-04-30 v0.1.0 Initial release.
