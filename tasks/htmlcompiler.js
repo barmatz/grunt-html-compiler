@@ -13,7 +13,7 @@ module.exports = function(grunt) {
         var fs = require('fs'),
         path = require('path'),
         options = this.options({
-            doctype: 'UTF-8',
+            doctype: 'html',
             encoding: 'UTF-8',
             vendors: null,
             scripts: null,
