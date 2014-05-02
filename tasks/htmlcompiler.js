@@ -20,6 +20,7 @@ module.exports = function(grunt) {
             scripts: null,
             stylesheets: null,
             title: '',
+            meta: [],
             body: null,
             root: '.'
         }),
@@ -69,6 +70,18 @@ module.exports = function(grunt) {
             return getElement('<link rel="stylesheet" href="<%= href %>"/>', {href: href});
         }
 
+        function getMetaElement(data) {
+            if ('name' in data) {
+                return getElement('<meta name="<%= name %>" content="<%= content %>"/>', data);
+            } else if ('http-equiv' in data) {
+                return getElement('<meta http-equiv="<%= http-equiv %>" content="<%= content %>"/>', data);
+            } else if ('charset' in data) {
+                return getElement('<meta charset="<%= charset %>""/>', data);
+            }
+
+            return '';
+        }
+
         if (targetPath && !grunt.file.exists(targetPath)) {
             grunt.file.mkdir(targetPath);
             grunt.log.writeln(grunt.template.process('Create path <%= targetPath %>', {data: { targetPath: chalk.cyan(targetPath) }}));
@@ -99,7 +112,13 @@ module.exports = function(grunt) {
             return getScriptsElement(filename);
         }).join('\n\t\t');
 
-        grunt.file.write(target, grunt.template.process('<!doctype <%= doctype %>>\n<html>\n\t<head>\n\t\t<title><%= title %></title>\n\t\t<meta charset="<%= encoding %>"/>\n\t\t<%= vendors %>\n\t\t<%= stylesheets %>\n\t</head>\n\t<body>\n\t\t<%= body %>\n\t\t<%= scripts %>\n\t</body>\n</html>', {data: options}).replace(/^\n|\s+$/gm, ''));
+        options.encoding = getMetaElement({charset: options.encoding});
+
+        options.meta = meta.forEach(function (data) {
+            return getMetaElement(data);
+        }).join('\n\t\t');
+
+        grunt.file.write(target, grunt.template.process('<!doctype <%= doctype %>>\n<html>\n\t<head>\n\t\t<title><%= title %></title>\n\t\t<%= encoding %>\n\t\t<%= meta %>\n\t\t<%= vendors %>\n\t\t<%= stylesheets %>\n\t</head>\n\t<body>\n\t\t<%= body %>\n\t\t<%= scripts %>\n\t</body>\n</html>', {data: options}).replace(/^\n|\s+$/gm, ''));
         grunt.log.ok(grunt.template.process('Created <%= filename %>', {data: { filename: chalk.cyan(target) }}));
     });
 };
