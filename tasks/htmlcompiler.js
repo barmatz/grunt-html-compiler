@@ -114,7 +114,7 @@ module.exports = function(grunt) {
 
         options.encoding = getMetaElement({charset: options.encoding});
 
-        options.meta = options.meta.forEach(function (data) {
+        options.meta = options.meta.map(function (data) {
             return getMetaElement(data);
         }).join('\n\t\t');
 

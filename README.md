@@ -189,6 +189,8 @@ grunt.initConfig({
 
 ## Release History
 
+  * 2014-05-02 v0.1.7 Fixed issues with version 0.1.6.
+  * 2014-05-02 v0.1.6 Fixed issues with version 0.1.5.
   * 2014-05-02 v0.1.5 Added support for META tags.
   * 2014-05-01 v0.1.4 Added auto creation of target paths if they don't exist and new colours for the logs.
   * 2014-05-01 v0.1.3 Added support for external URLs.

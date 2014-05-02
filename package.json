@@ -1,7 +1,7 @@
 {
   "name": "grunt-html-compiler",
   "description": "Grunt task to compile an HTML document.",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "homepage": "https://github.com/barmatz/grunt-html-compiler",
   "author": {
     "name": "Or Barmatz",
