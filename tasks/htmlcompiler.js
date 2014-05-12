@@ -76,7 +76,7 @@ module.exports = function(grunt) {
             } else if ('http-equiv' in data) {
                 return getElement('<meta http-equiv="<%= http-equiv %>" content="<%= content %>"/>', data);
             } else if ('charset' in data) {
-                return getElement('<meta charset="<%= charset %>""/>', data);
+                return getElement('<meta charset="<%= charset %>"/>', data);
             }
 
             return '';

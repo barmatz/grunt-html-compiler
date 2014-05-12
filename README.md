@@ -189,6 +189,7 @@ grunt.initConfig({
 
 ## Release History
 
+  * 2014-05-12 v0.1.8 Removed extra quotation from meta element.
   * 2014-05-02 v0.1.7 Fixed issues with version 0.1.6.
   * 2014-05-02 v0.1.6 Fixed issues with version 0.1.5.
   * 2014-05-02 v0.1.5 Added support for META tags.
