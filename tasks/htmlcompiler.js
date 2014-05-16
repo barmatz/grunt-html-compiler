@@ -16,9 +16,9 @@ module.exports = function(grunt) {
         options = this.options({
             doctype: 'html',
             encoding: 'UTF-8',
-            vendors: null,
-            scripts: null,
-            stylesheets: null,
+            vendors: [],
+            scripts: [],
+            stylesheets: [],
             title: '',
             meta: [],
             body: null,
