@@ -145,6 +145,31 @@ grunt.initConfig({
 </html>
 ```
 
+It is also possible to generate multiple files based on shared options.  
+In this example two HTML file will be created, sharing the same title but with different body content.
+
+```js
+grunt.initConfig({
+  htmlcompiler: {
+    options: {
+      title: 'Shared title'
+    },
+    foo: {
+      options: {
+        body: 'My foo'
+      },
+      dest: 'foo.html'
+    },
+    bar: {
+      options: {
+        body: 'My bar'
+      },
+      dest: 'bar.html'
+    }
+  }
+});
+```
+
 #### Custom Options
 In this example, an `index.html` file will be created with relative assets from the project.
 
@@ -155,7 +180,7 @@ grunt.initConfig({
       doctype: 'html',
       encoding: 'UTF-8'
     },
-    'index.html': {
+    index: {
       options: {
         vendors: 'vendor/**',
         scripts: 'scripts/**/*.js',
@@ -163,7 +188,8 @@ grunt.initConfig({
         title: 'HTML Compiler Page',
         body: 'Hello world',
         root: '.'
-      }
+      },
+      dest: 'index.html'
     }
   }
 });
@@ -189,6 +215,7 @@ grunt.initConfig({
 
 ## Release History
 
+  * 2014-06-18 v0.2.0 Added advance file specification options.
   * 2014-05-16 v0.1.9 Fixed bug when vendor/scripts/stylesheets options are not defined.
   * 2014-05-12 v0.1.8 Removed extra quotation from meta element.
   * 2014-05-02 v0.1.7 Fixed issues with version 0.1.6.
