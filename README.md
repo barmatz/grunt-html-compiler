@@ -28,15 +28,17 @@ grunt.initConfig({
     options: {
       // global options
     },
-    'a.html': {
+    a: {
       options: {
         // task specific options
-      }
+      },
+      dest: 'a.html'
     },
-    'b.html': {
+    b: {
       options: {
         // task specific options
-      }
+      },
+      dest: 'b.html'
     }
   }
 });
@@ -95,20 +97,21 @@ A list of metadata information.
 ```js
 grunt.initConfig({
   htmlcompiler: {
-    'index.html': {
+    index: {
       meta: [
         {
           name: 'viewport',
           content: 'width=device-width, user-scalable=no'
         },
         {
-          http-equiv: 'refresh',
+          httpEquiv: 'refresh',
           content: '30'
         },
         {
           charset: 'UTF-8'
         }
-      ]
+      ],
+      dest: 'index.html'
     }
   }
 });
@@ -213,8 +216,82 @@ grunt.initConfig({
 </html>
 ```
 
+#### Adding inline style elements
+The `stylesheet` option can accept an object as one of it's items when it's an array.
+If the object has a `content` property a `style` element will be created with the value as it's inner HTML , instead of a `link` element.
+
+```js
+grunt.initConfig({
+  htmlcompiler: {
+    index: {
+      options: {
+        stylesheets: [
+          {
+            content: 'html, body { height: 100%; }'
+          }
+        ]
+      },
+      dest: 'index.html'
+    }
+  }
+});
+```
+
+```html
+<!doctype html>
+<html>
+  <head>
+    <style>html, body { height: 100%; }</style>
+  </head>
+  <body></body>
+</html>
+```
+
+#### Adding attributes to elements
+Attributes can be added by assigning the resource as an object and creating a `attrs` property. The resource path is defined with a `src` property.
+The `attrs`property is a key/value object.
+
+```js
+grunt.initConfig({
+  htmlcompiler: {
+    index: {
+      options: {
+        stylesheets: [
+          'style.css',
+          {
+            attrs: {
+              media: 'print'
+            },
+            src: 'print.css'
+          }
+        ],
+        body: {
+          attrs: {
+            dir: 'ltr'
+          },
+          content: 'Hello world'
+        }
+      },
+      dest: 'index.html'
+    }
+  }
+});
+```
+
+```html
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css"/>
+    <link rel="stylesheet" href="print.css" media="print"/>
+  </head>
+  <body dir="ltr">Hello world</body>
+</html>
+```
+
 ## Release History
 
+  * 2014-06-24 v0.2.1 Added advance element specification options.
   * 2014-06-18 v0.2.0 Added advance file specification options.
   * 2014-05-16 v0.1.9 Fixed bug when vendor/scripts/stylesheets options are not defined.
   * 2014-05-12 v0.1.8 Removed extra quotation from meta element.

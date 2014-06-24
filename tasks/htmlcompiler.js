@@ -10,64 +10,101 @@
 
 var fs = require('fs'),
 path = require('path'),
-chalk = require('chalk');
+chalk = require('chalk'),
+Attrs = require('./Attrs');
 
 module.exports = function(grunt) {
     function isExternalAsset(asset) {
         return /^\w+:\/\//.test(asset);   
     }
 
-    function getAssets(assets, filepath, options) {
-        var externalAssets = {};
+    function getAssets(assets, filepath, root, factory) {
+        var returnVal = [],
+        expandMapping = grunt.file.expandMapping;
+
+        function addToReturnVal(asset, attrs) {
+            if (isExternalAsset(asset)) {
+                returnVal.push(factory(asset, attrs));
+            } else {
+                returnVal = returnVal.concat(expandMapping(asset).map(function (file) {
+                    return factory(path.relative(filepath, fs.realpathSync(root + '/' + file.src)), attrs);
+                }));
+            }
+        }
 
         switch (typeof assets) {
             case 'string':
-                if (isExternalAsset(assets)) {
-                    return assets;
-                }
+                addToReturnVal(assets);
                 break;
             case 'object':
                 if (assets instanceof Array) {
                     assets.forEach(function (asset) {
-                        if (isExternalAsset(asset)) {
-                            externalAssets[asset] = true;
+                        switch (typeof asset) {
+                            case 'string':
+                                addToReturnVal(asset);
+                                break;
+                            case 'object':
+                                if ('src' in asset) {
+                                    addToReturnVal(asset.src, asset.attrs);
+                                } else if ('content' in asset) {
+                                    returnVal.push(factory(null, asset.attrs, asset.content));
+                                }
+                                break;
                         }
                     });
                 }
                 break;
         }
 
-        return grunt.file.expandMapping(assets).map(function (files) {
-            return path.relative(filepath, fs.realpathSync(options.root + '/' + files.src));
-        }).concat(Object.keys(externalAssets));
+        return returnVal;
     }
 
     function getElement(template, options) {
         return grunt.template.process(template, {data: options});
     }
 
-    function getScriptsElement(src) {
-        grunt.log.writeln(grunt.template.process('Linking script <%= filename %>', {data: { filename: chalk.cyan(src) }}));
-        return getElement('<script src="<%= src %>"></script>', {src: src});
+    function getScriptsElement(src /*, attrs, content*/) {
+        var attrs = arguments[1],
+        content = arguments[2];
+
+        if (attrs) {
+            attrs = new Attrs(attrs);
+        }
+
+        grunt.log.writeln(grunt.template.process('Linking script <%= filename %><%= attrs %>', {data: { filename: chalk.cyan(src), attrs: attrs ? ' attributes(' + attrs.toString() + ')' : '' }}));
+        return getElement('<script<%= src %><%= attrs %>><%= content %></script>', {content: content || '', src: content ? '' : ' src="' + src + '"', attrs: attrs ? ' ' + attrs.toHtml() : ''});
     }
 
-    function getStylesheetElement(href) {
-        grunt.log.writeln(grunt.template.process('Linking stylesheet <%= filename %>', {data: { filename: chalk.cyan(href) }}));
-        return getElement('<link rel="stylesheet" href="<%= href %>"/>', {href: href});
+    function getStylesheetElement(href /*, attrs, content*/) {
+        var attrs = arguments[1],
+        content = arguments[2];
+
+        if (attrs) {
+            attrs = new Attrs(attrs);
+        }
+
+        if (content) {
+            grunt.log.writeln(grunt.template.process('Created style element<%= attrs %>\n\t<%= content%>', {data: {content: chalk.magenta(content), attrs: attrs ? ' with ' + attrs.toString() : '' }}));
+        
+            return getElement('<style<%= attrs %>><%= content %></style>', {content: content, attrs: attrs ? ' ' + attrs.toHtml() : ''});
+        }
+
+        grunt.log.writeln(grunt.template.process('Linking stylesheet <%= filename %><%= attrs %>', {data: { filename: chalk.cyan(href), attrs: attrs ? chalk.gray('\n\tattributes(' + attrs.toString() + ')') : '' }}));
+
+        return getElement('<link rel="stylesheet" href="<%= href %>"<%= attrs %>/>', {href: href, attrs: attrs ? ' ' + attrs.toHtml() : ''});
     }
 
     function getMetaElement(data) {
         if ('name' in data) {
             return getElement('<meta name="<%= name %>" content="<%= content %>"/>', data);
         } else if ('http-equiv' in data) {
-            return getElement('<meta http-equiv="<%= http-equiv %>" content="<%= content %>"/>', data);
+            return getElement('<meta http-equiv="<%= httpEquiv %>" content="<%= content %>"/>', data);
         } else if ('charset' in data) {
             return getElement('<meta charset="<%= charset %>"/>', data);
         }
 
         return '';
     }
-
 
     function createFile(filename, options) {
         var pathPattern = /^(.*)\/.*$/,
@@ -86,22 +123,22 @@ module.exports = function(grunt) {
             encoding: chalk.cyan(options.encoding)
         }}));
 
-        options.vendors = getAssets(options.vendors, filepath, options).map(function (file) {
-            if (/\.js$/.test(file)) {
-                return getScriptsElement(file);
-            } else if (/\.css$/.test(file)) {
-                return getStylesheetElement(file);
+        options.vendors = getAssets(options.vendors, filepath, options.root, function (filename, attrs, content) {
+            if (/\.js$/.test(filename)) {
+                return getScriptsElement(filename, attrs, content);
+            } else if (/\.css$/.test(filename)) {
+                return getStylesheetElement(filename, attrs, content);
             }
 
             return null;
         }).join('\n\t\t');
 
-        options.stylesheets = getAssets(options.stylesheets, filepath, options).map(function (filename) {
-            return getStylesheetElement(filename);
+        options.stylesheets = getAssets(options.stylesheets, filepath, options.root, function (filename, attrs, content) {
+            return getStylesheetElement(filename, attrs, content);
         }).join('\n\t\t');
 
-        options.scripts = getAssets(options.scripts, filepath, options).map(function (filename) {
-            return getScriptsElement(filename);
+        options.scripts = getAssets(options.scripts, filepath, options.root, function (filename, attrs, content) {
+            return getScriptsElement(filename, attrs, content);
         }).join('\n\t\t');
 
         options.encoding = getMetaElement({charset: options.encoding});
@@ -110,7 +147,18 @@ module.exports = function(grunt) {
             return getMetaElement(data);
         }).join('\n\t\t');
 
-        grunt.file.write(filename, grunt.template.process('<!doctype <%= doctype %>>\n<html>\n\t<head>\n\t\t<title><%= title %></title>\n\t\t<%= encoding %>\n\t\t<%= meta %>\n\t\t<%= vendors %>\n\t\t<%= stylesheets %>\n\t</head>\n\t<body>\n\t\t<%= body %>\n\t\t<%= scripts %>\n\t</body>\n</html>', {data: options}).replace(/^\n|\s+$/gm, ''));
+        options.bodyAttrs = null;
+
+        if (typeof options.body === 'object') {
+            options.bodyAttrs = new Attrs(options.body.attrs).toHtml();
+            options.body = options.body.content;
+
+            grunt.log.writeln(chalk.gray(grunt.template.process('body attributes(<%= attrs %>)', {data: { attrs: options.bodyAttrs.toString() }})));
+
+            options.bodyAttrs = ' ' + options.bodyAttrs;
+        }
+
+        grunt.file.write(filename, grunt.template.process('<!doctype <%= doctype %>>\n<html>\n\t<head>\n\t\t<title><%= title %></title>\n\t\t<%= encoding %>\n\t\t<%= meta %>\n\t\t<%= vendors %>\n\t\t<%= stylesheets %>\n\t</head>\n\t<body<%= bodyAttrs %>>\n\t\t<%= body %>\n\t\t<%= scripts %>\n\t</body>\n</html>', {data: options}).replace(/^\n|\s+$/gm, ''));
         grunt.log.ok(grunt.template.process('Created <%= filename %>', {data: { filename: chalk.cyan(filename) }}));
     }
 
