@@ -291,6 +291,7 @@ grunt.initConfig({
 
 ## Release History
 
+  * 2014-06-24 v0.2.2 Fixed typo.
   * 2014-06-24 v0.2.1 Added advance element specification options.
   * 2014-06-18 v0.2.0 Added advance file specification options.
   * 2014-05-16 v0.1.9 Fixed bug when vendor/scripts/stylesheets options are not defined.

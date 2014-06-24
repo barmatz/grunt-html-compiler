@@ -97,7 +97,7 @@ module.exports = function(grunt) {
     function getMetaElement(data) {
         if ('name' in data) {
             return getElement('<meta name="<%= name %>" content="<%= content %>"/>', data);
-        } else if ('http-equiv' in data) {
+        } else if ('httpEquiv' in data) {
             return getElement('<meta http-equiv="<%= httpEquiv %>" content="<%= content %>"/>', data);
         } else if ('charset' in data) {
             return getElement('<meta charset="<%= charset %>"/>', data);
