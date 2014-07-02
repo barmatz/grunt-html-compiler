@@ -38,20 +38,19 @@ module.exports = function(grunt) {
                 break;
             case 'object':
                 if (assets instanceof Array) {
-                    assets.forEach(function (asset) {
-                        switch (typeof asset) {
-                            case 'string':
-                                addToReturnVal(asset);
-                                break;
-                            case 'object':
-                                if ('src' in asset) {
-                                    addToReturnVal(asset.src, asset.attrs);
-                                } else if ('content' in asset) {
-                                    returnVal.push(factory(null, asset.attrs, asset.content));
-                                }
-                                break;
+                    addToReturnVal(assets.filter(function (asset) {
+                        if (typeof asset === 'object') {
+                            if ('src' in asset) {
+                                addToReturnVal(asset.src, asset.attrs);
+                            } else if ('content' in asset) {
+                                returnVal.push(factory(null, asset.attrs, asset.content));
+                            }
+
+                            return false;
                         }
-                    });
+
+                        return true;
+                    }));
                 }
                 break;
         }

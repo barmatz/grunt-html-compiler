@@ -291,6 +291,7 @@ grunt.initConfig({
 
 ## Release History
 
+  * 2014-07-02 v0.2.3 Fixed incorrect file globbing.
   * 2014-06-24 v0.2.2 Fixed typo.
   * 2014-06-24 v0.2.1 Added advance element specification options.
   * 2014-06-18 v0.2.0 Added advance file specification options.
